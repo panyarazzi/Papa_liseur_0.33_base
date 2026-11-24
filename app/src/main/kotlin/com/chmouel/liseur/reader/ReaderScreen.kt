@@ -2153,14 +2153,23 @@ internal fun ReaderScreen(
         val nav = navigator ?: return@LaunchedEffect
         if (!reflowableText) return@LaunchedEffect
         val root = nav.publicationViewOrNull ?: return@LaunchedEffect
-        var transformed: Pair<WebView, String>? = null
         var fitted: Pair<WebView, String>? = null
         merge(nav.currentLocator.map { }, layoutPasses(root)).collect {
             val web = visibleWebView(root) ?: return@collect
             // The pager recycles WebViews between chapters, so both the view
             // and the resource href identify the document being processed.
             val key = web to nav.currentLocator.value.href.toString()
-            val needsTransform = key != transformed
+            // Check without mutating first. This lets a late stylesheet be
+            // transformed only after its current Locator has been captured.
+            val needsTransform = try {
+                nav.evaluateJavascript(
+                    PublisherFontWeightTransform.needsApplyScript(publisherFontWeightMultiplier)
+                ) == "true"
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                false
+            }
             val needsFit = key != fitted
             if (!needsTransform && !needsFit) return@collect
 
@@ -2183,7 +2192,7 @@ internal fun ReaderScreen(
                     ResourceAddress.shows(web.url, it.href.toString())
             }
 
-            var transformSucceeded = false
+            var transformChanged = false
             reflow.within {
                 // The opening target is more trustworthy than a capture while
                 // an approximate restoration is still travelling to its page.
@@ -2203,8 +2212,8 @@ internal fun ReaderScreen(
                     } catch (_: Exception) {
                         null
                     }
-                    transformSucceeded = result != null && result != "null"
-                    if (result == "true") {
+                    transformChanged = result == "true"
+                    if (transformChanged) {
                         layoutGeneration++
                         awaitReflowSettled(nav, before)
                     }
@@ -2216,16 +2225,13 @@ internal fun ReaderScreen(
                     // restoring the anchor captured above.
                     awaitReflowSettled(nav, before)
                 }
-                if ((repaired || transformSucceeded && needsTransform) &&
-                    anchor != null && stillFitting()
-                ) {
+                if ((repaired || transformChanged) && anchor != null && stillFitting()) {
                     restoreAfterReflow(nav, anchor)
                 }
             }
 
-            // A failed/too-early transform is retried on the next layout pass.
-            // A missing anchor must not be mistaken for a successful transform.
-            if (transformSucceeded) transformed = key
+            // A missing anchor leaves the transform pending: the next locator
+            // or layout pass checks again before changing the document.
             if (needsFit) fitted = key
         }
     }
