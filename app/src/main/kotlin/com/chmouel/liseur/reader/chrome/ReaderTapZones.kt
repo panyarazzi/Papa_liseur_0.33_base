@@ -202,6 +202,13 @@ class ReaderTapZones(
         ): Action {
             if (scrolling) return Action.Chrome
             val zones = layout.zones
+            if (zones == TapZones.ANYWHERE) {
+                val zone = zoneAt(x, y, width, height, density, sideWidth = layout.sideWidth)
+                return when (zone) {
+                    Zone.CHROME -> Action.Chrome
+                    Zone.BACK, Zone.FORWARD -> Action.Turn(forward = true)
+                }
+            }
             if (zones == TapZones.BOTH || zones == TapZones.OFF) {
                 val zone = zoneAt(x, y, width, height, density, sideWidth = layout.sideWidth)
                 val forward = forward(zone, rtl) ?: return Action.Chrome
