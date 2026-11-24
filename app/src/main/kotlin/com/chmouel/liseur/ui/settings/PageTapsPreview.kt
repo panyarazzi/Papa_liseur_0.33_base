@@ -154,6 +154,7 @@ private val TapLayout.previewDescription: Int
             TapZones.BOTH -> if (wide) R.string.page_taps_preview_both_wide else R.string.page_taps_preview_both
             TapZones.LEFT -> if (wide) R.string.page_taps_preview_left_wide else R.string.page_taps_preview_left
             TapZones.RIGHT -> if (wide) R.string.page_taps_preview_right_wide else R.string.page_taps_preview_right
+            TapZones.ANYWHERE -> R.string.page_taps_preview_anywhere
             TapZones.OFF -> R.string.page_taps_preview_off
         }
     }
