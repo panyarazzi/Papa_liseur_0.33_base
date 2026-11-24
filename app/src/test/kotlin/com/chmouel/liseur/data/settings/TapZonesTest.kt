@@ -31,6 +31,7 @@ class TapZonesTest {
     fun `the old swapped preset reads as the left side and standard as both`() {
         assertEquals(TapZones.LEFT, TapZones.fromId("swapped"))
         assertEquals(TapZones.BOTH, TapZones.fromId("standard"))
+        assertEquals(TapZones.ANYWHERE, TapZones.fromId("anywhere"))
     }
 
     @Test
