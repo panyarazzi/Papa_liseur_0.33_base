@@ -58,7 +58,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.chmouel.liseur"
+        applicationId = "com.chmouel.liseur.experimental"
         minSdk = 26
         targetSdk = 37
         versionCode = 92
