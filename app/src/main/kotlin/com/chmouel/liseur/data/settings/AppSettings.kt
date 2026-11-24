@@ -128,6 +128,11 @@ enum class VolumeKeyMode(val id: String) {
  * the middle does. Up and down do not depend on reading direction, so
  * neither does a single side.
  *
+ * [ANYWHERE] turns forward from either side of the page, keeping only
+ * the centre box and top strip for opening the menu. The side-width
+ * setting can still narrow the active edges when the reader wants a
+ * larger menu area.
+ *
  * [OFF] stops the sides turning pages at all. It is the answer for a
  * reader whose grip keeps landing on the edge of the page: the centre
  * and the top strip still reveal the chrome, and the volume keys and
@@ -146,6 +151,7 @@ enum class TapZones(val id: String) {
     BOTH("standard"),
     LEFT("swapped"),
     RIGHT("right"),
+    ANYWHERE("anywhere"),
     OFF("off"),
     ;
 
