@@ -2090,7 +2090,7 @@ internal fun ReaderScreen(
                     // reflow transaction as Readium's preference update.
                     // This keeps a weight change from producing an untracked
                     // locator emission between two independent page rebuilds.
-                    val transformResult = if (reflowableText) {
+                    if (reflowableText) {
                         try {
                             nav.evaluateJavascript(
                                 PublisherFontWeightTransform.script(fontWeightMultiplier)
@@ -2098,13 +2098,10 @@ internal fun ReaderScreen(
                         } catch (error: CancellationException) {
                             throw error
                         } catch (_: Exception) {
-                            null
+                            // The per-resource layout observer retries when the
+                            // visible document is ready to accept the script.
                         }
-                    } else {
-                        null
                     }
-                    val transformChanged = transformResult == "true"
-                    if (transformChanged) layoutGeneration++
                     // After the anchor and the signature, so the resize
                     // the padding causes is part of what the settle
                     // below watches for rather than something it races.
