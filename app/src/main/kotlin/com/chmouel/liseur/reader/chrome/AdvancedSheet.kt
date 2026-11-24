@@ -228,7 +228,6 @@ fun AdvancedSheet(
 }
 
 @Composable
-@Composable
 private fun ReaderChromePreferencesControls(
     prefs: ReaderPrefs,
     onTopProgressModeChanged: (TopProgressMode) -> Unit,
