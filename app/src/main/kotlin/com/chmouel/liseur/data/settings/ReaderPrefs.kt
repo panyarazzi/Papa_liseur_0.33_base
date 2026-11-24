@@ -239,6 +239,17 @@ enum class ReaderThemeChoice(val id: String, val palette: ReaderTheme?) {
  * and are always drawn; this enum only decides the slot between them,
  * and tapping the footer cycles it.
  */
+enum class TopProgressMode(val id: String) {
+    OFF("off"),
+    PERCENT("percent"),
+    PAGES_LEFT_CHAPTER_TITLE("pages_chapter_title");
+
+    companion object {
+        val Default = OFF
+        fun fromId(id: String?): TopProgressMode = entries.firstOrNull { it.id == id } ?: Default
+    }
+}
+
 enum class FooterMode(val id: String) {
     /**
      * Time left in the chapter once a reading pace has actually been
@@ -369,6 +380,9 @@ enum class FooterField(val id: String) {
     /** How much charge is left, drawn with a glyph. */
     BATTERY("battery"),
 
+    /** Time of day and battery percentage together in one footer corner. */
+    TIME_AND_BATTERY("time_battery"),
+
     /** Nothing at all, leaving the other slots more room. */
     EMPTY("empty"),
     ;
@@ -389,7 +403,7 @@ enum class FooterField(val id: String) {
      * book. The two that are keep their own schedule, and a footer
      * showing neither takes no readings and needs no nudging.
      */
-    val readsTheDevice: Boolean get() = this == CLOCK || this == BATTERY
+    val readsTheDevice: Boolean get() = this == CLOCK || this == BATTERY || this == TIME_AND_BATTERY
 
     companion object {
         /**
@@ -932,6 +946,8 @@ data class ReaderPrefs(
     val letterSpacing: Double? = null,
     val wordSpacing: Double? = null,
     val paragraphSpacing: Double? = null,
+    val topProgressMode: TopProgressMode = TopProgressMode.Default,
+    val progressFontSizeSp: Float = 12f,
 ) {
     companion object {
         const val MIN_FONT_SIZE = 0.6
@@ -987,6 +1003,7 @@ fun ReaderPrefs.sanitized(): ReaderPrefs = copy(
     letterSpacing = TypographyRange.LETTER_SPACING.sanitize(letterSpacing),
     wordSpacing = TypographyRange.WORD_SPACING.sanitize(wordSpacing),
     paragraphSpacing = TypographyRange.PARAGRAPH_SPACING.sanitize(paragraphSpacing),
+    progressFontSizeSp = progressFontSizeSp.takeIf { it.isFinite() }?.coerceIn(9f, 20f) ?: 12f,
     brightness = brightness?.takeIf { it.isFinite() }?.coerceIn(0f, 1f),
     autoScrollSpeed = AutoScrollPreference.sanitize(autoScrollSpeed),
 )
