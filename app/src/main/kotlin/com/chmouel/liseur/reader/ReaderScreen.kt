@@ -628,6 +628,7 @@ internal fun ReaderScreen(
     var footerNoteCount by remember { mutableLongStateOf(0L) }
     val chromeVisibleNow by rememberUpdatedState(chromeVisible)
     val prefs by prefsFlow.collectAsStateWithLifecycle()
+    val publisherFontWeightMultiplier by rememberUpdatedState(prefs.fontWeight.multiplier)
     val keepScreenOn by keepScreenOnFlow.collectAsStateWithLifecycle()
     val scrollMode by scrollModeFlow.collectAsStateWithLifecycle()
     val tapLayout by tapLayoutFlow.collectAsStateWithLifecycle()
@@ -2195,7 +2196,7 @@ internal fun ReaderScreen(
                 if (needsTransform && anchor != null && stillFitting()) {
                     val result = try {
                         nav.evaluateJavascript(
-                            PublisherFontWeightTransform.script(prefs.fontWeight.multiplier)
+                            PublisherFontWeightTransform.script(publisherFontWeightMultiplier)
                         )
                     } catch (error: CancellationException) {
                         throw error
