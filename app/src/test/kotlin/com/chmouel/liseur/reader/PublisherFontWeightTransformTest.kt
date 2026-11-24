@@ -24,7 +24,7 @@ class PublisherFontWeightTransformTest {
     }
 
     @Test
-    fun `script receives the requested weight and reports layout changes`() {
+    fun `apply script receives requested weight and reports layout changes`() {
         val script = PublisherFontWeightTransform.script(1.75)
 
         assertTrue(script.contains("var target = 700;"))
@@ -49,16 +49,16 @@ class PublisherFontWeightTransformTest {
         val script = PublisherFontWeightTransform.script(1.75)
 
         assertTrue(script.contains("@font-face descriptors"))
-        assertTrue(script.contains("CSSStyleRule only"))
+        assertTrue(script.contains("explicit 400/700 mapping"))
     }
 
     @Test
-    fun `inline styles and later stylesheet changes are handled`() {
-        val script = PublisherFontWeightTransform.script(1.75)
+    fun `pending stylesheets and inline declarations are detected before mutation`() {
+        val script = PublisherFontWeightTransform.needsApplyScript(1.75)
 
+        assertTrue(script.contains("state.target !== target"))
+        assertTrue(script.contains("rule.type === 1 && rule.style && hasNormal(rule.style)"))
         assertTrue(script.contains("document.querySelectorAll(\"[style]\")"))
-        assertTrue(script.contains("new MutationObserver"))
-        assertTrue(script.contains("document.addEventListener(\"load\", state.schedule, true)"))
-        assertTrue(script.contains("attributeFilter: [\"style\", \"href\", \"rel\"]"))
+        assertFalse(script.contains("style.setProperty("))
     }
 }
