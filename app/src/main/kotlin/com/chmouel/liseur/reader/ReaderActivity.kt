@@ -682,6 +682,8 @@ class ReaderActivity : FragmentActivity() {
                                             setBrightness = viewModel::setBrightness,
                                             commitBrightness = viewModel::commitBrightness,
                                             setPageTurnStyle = viewModel::setPageTurnStyle,
+                                             setTopProgressMode = viewModel::setTopProgressMode,
+                                             setProgressFontSizeSp = viewModel::setProgressFontSizeSp,
                                             setColumnMode = viewModel::setColumnMode,
                                             setAutoScrollSpeed = viewModel::setAutoScrollSpeed,
                                             nudgeAutoScrollSpeed = { viewModel.nudgeAutoScrollSpeed(it) },
