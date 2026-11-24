@@ -673,6 +673,8 @@ private fun middleText(
 
         is FooterMiddle.Chapter -> middle.title
 
+        is FooterMiddle.PagesAndChapter -> "${middle.page}/${middle.totalPages} ${middle.title}"
+
         is FooterMiddle.PagesInChapter ->
             if (middle.pages == 0) {
                 stringResource(R.string.footer_last_page_in_chapter)
