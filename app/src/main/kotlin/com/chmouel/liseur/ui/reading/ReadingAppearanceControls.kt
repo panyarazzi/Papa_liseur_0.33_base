@@ -1059,6 +1059,7 @@ val FooterField.label: Int
         FooterField.TIME_LEFT_CHAPTER -> R.string.footer_field_time_chapter
         FooterField.CLOCK -> R.string.footer_field_clock
         FooterField.BATTERY -> R.string.footer_field_battery
+        FooterField.TIME_AND_BATTERY -> R.string.footer_field_time_battery
         FooterField.EMPTY -> R.string.footer_field_empty
     }
 
