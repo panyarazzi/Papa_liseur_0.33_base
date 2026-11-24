@@ -51,6 +51,27 @@ class FooterMiddleTest {
     }
 
     @Test
+    fun `chapter page count and title can share the middle slot`() {
+        assertEquals(
+            FooterMiddle.PagesAndChapter(4, 12, "The Sign of Four"),
+            footerMiddle(
+                progress,
+                FooterMode.PAGES_LEFT_CHAPTER_TITLE,
+                reflowable = true,
+                screens = SectionScreens(4, 12),
+            ),
+        )
+    }
+
+    @Test
+    fun `chapter title remains available before screen count is measured`() {
+        assertEquals(
+            FooterMiddle.Chapter("The Sign of Four"),
+            footerMiddle(progress, FooterMode.PAGES_LEFT_CHAPTER_TITLE, reflowable = true, screens = null),
+        )
+    }
+
+    @Test
     fun `book time is shown even before the pace settles`() {
         // The mode was asked for by name; a rough figure is what it means.
         assertEquals(
