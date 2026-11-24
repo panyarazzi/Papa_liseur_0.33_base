@@ -881,7 +881,7 @@
     <string name="tap_zones_both">Both</string>
     <string name="tap_zones_left">Left only</string>
     <string name="tap_zones_right">Right only</string>
-    <string name="tap_zones_anywhere">Anywhere (except menu)</string>
+    <string name="tap_zones_anywhere" translatable="false">Anywhere (except menu)</string>
     <string name="tap_zones_off">Off</string>
     <string name="settings_tap_side_width">Page-turn area</string>
     <string name="settings_tap_side_width_detail">How much of each edge turns the page. Narrower edges leave more of the middle for the menu.</string>
@@ -898,7 +898,7 @@
     <string name="page_taps_preview_left">The upper left goes back, the lower left goes forward, and the rest of the page opens the menu.</string>
     <string name="page_taps_preview_right">The upper right goes back, the lower right goes forward, and the rest of the page opens the menu.</string>
     <string name="page_taps_preview_off">Tapping a side does nothing. The middle and the top open the menu.</string>
-    <string name="page_taps_preview_anywhere">Both sides turn forward; the centre and top strip open the menu.</string>
+    <string name="page_taps_preview_anywhere" translatable="false">Both sides turn forward; the centre and top strip open the menu.</string>
     <string name="page_taps_preview_both_wide">The left third goes back and the rest of the page goes forward, except the top and a box in the middle, which open the menu.</string>
     <string name="page_taps_preview_left_wide">The upper half of the left side goes back and the lower half goes forward. The right half, the top and a box in the middle open the menu.</string>
     <string name="page_taps_preview_right_wide">The upper half of the right side goes back and the lower half goes forward. The left half, the top and a box in the middle open the menu.</string>
