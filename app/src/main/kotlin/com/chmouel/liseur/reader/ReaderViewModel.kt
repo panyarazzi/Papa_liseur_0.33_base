@@ -63,6 +63,7 @@ import com.chmouel.liseur.data.settings.DefinitionTarget
 import com.chmouel.liseur.data.settings.FooterField
 import com.chmouel.liseur.data.settings.FooterMode
 import com.chmouel.liseur.data.settings.FooterSlot
+import com.chmouel.liseur.data.settings.TopProgressMode
 import com.chmouel.liseur.data.settings.ReadingFont
 import com.chmouel.liseur.data.settings.ReaderPreferencesRepository
 import com.chmouel.liseur.data.settings.ReadingPaceRepository
@@ -3168,6 +3169,12 @@ class ReaderViewModel(
 
     fun setPageTurnStyle(style: PageTurnStyle) =
         viewModelScope.launch { prefsRepo.setPageTurnStyle(style) }
+
+    fun setTopProgressMode(mode: TopProgressMode) =
+        viewModelScope.launch { prefsRepo.setTopProgressMode(mode) }
+
+    fun setProgressFontSizeSp(value: Float) =
+        viewModelScope.launch { prefsRepo.setProgressFontSizeSp(value) }
 
     /**
      * Answers the screen question for this book alone.
