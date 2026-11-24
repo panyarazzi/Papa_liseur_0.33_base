@@ -1936,7 +1936,10 @@ internal fun ReaderScreen(
         if (!vendorRefresh || eInkDisplay.vendor == null) return@LaunchedEffect
         val root = nav.publicationViewOrNull ?: return@LaunchedEffect
         var spokenTo: WebView? = null
-        merge(nav.currentLocator.map { }, layoutPasses(root)).collect {
+        merge(
+            nav.currentLocator.map { it.href.toString() }.distinctUntilChanged().map { },
+            layoutPasses(root),
+        ).collect {
             val web = visibleWebView(root) ?: return@collect
             if (web === spokenTo) return@collect
             spokenTo = web
