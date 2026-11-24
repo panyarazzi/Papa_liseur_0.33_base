@@ -198,6 +198,7 @@ import com.chmouel.liseur.reader.footnotes.SameDocumentLinks
 import com.chmouel.liseur.data.settings.FooterField
 import com.chmouel.liseur.data.settings.FooterMode
 import com.chmouel.liseur.data.settings.FooterSlot
+import com.chmouel.liseur.data.settings.TopProgressMode
 import com.chmouel.liseur.data.settings.footerHasAnythingToSay
 import com.chmouel.liseur.data.settings.ColumnMode
 import com.chmouel.liseur.data.settings.PageTurnStyle
@@ -4641,6 +4642,44 @@ internal fun ReaderScreen(
         LaunchedEffect(footerDrawn, footerNote) {
             if (!footerDrawn) footerNote = null
         }
+        if (!showingEnd && !chromeVisible && prefs.topProgressMode != TopProgressMode.OFF) {
+            val topProgressText = when (prefs.topProgressMode) {
+                TopProgressMode.OFF -> null
+                TopProgressMode.PERCENT -> progress?.let { "${it.percent}%" }
+                TopProgressMode.PAGES_LEFT_CHAPTER_TITLE -> progress?.let { current ->
+                    val title = current.chapterTitle?.takeIf { it.isNotBlank() }
+                    val chapterPage = sectionScreens
+                        ?.takeIf { reflowableText }
+                        ?.let { it.screen to it.screens }
+                    when {
+                        chapterPage != null && title != null ->
+                            "${chapterPage.first.coerceAtLeast(1)}/${chapterPage.second.coerceAtLeast(1)} $title"
+                        title != null -> title
+                        chapterPage != null -> "${chapterPage.first}/${chapterPage.second}"
+                        else -> null
+                    }
+                }
+            }
+            topProgressText?.let { label ->
+                Text(
+                    text = label,
+                    color = readingTheme.foreground.copy(alpha = 0.72f),
+                    fontSize = prefs.progressFontSizeSp.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .then(behindViewer)
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                        .padding(start = 12.dp, end = 12.dp, top = 2.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(onDoubleTap = { showToc = true })
+                        },
+                )
+            }
+        }
+
         if (footerDrawn) {
             ReadingFooter(
                 progress = progress,
@@ -4652,6 +4691,7 @@ internal fun ReaderScreen(
                 right = prefs.footerRight,
                 footerLocked = lockFooterOn,
                 turn = footerTurn,
+                progressFontSizeSp = prefs.progressFontSizeSp,
                 theme = readingTheme,
                 onCycleMode = onProgressAction.cycleFooterMode,
                 onCycleField = onProgressAction.cycleFooterField,
@@ -6229,6 +6269,8 @@ private fun ReaderSheetHost(
             onVerticalMarginsChanged = onPrefsAction.setVerticalMargins,
             onSyncVerticalMarginsChanged = onPrefsAction.setSyncVerticalMargins,
             onColumnModeChanged = onPrefsAction.setColumnMode,
+            onTopProgressModeChanged = onPrefsAction.setTopProgressMode,
+            onProgressFontSizeChanged = onPrefsAction.setProgressFontSizeSp,
             onFooterModeChanged = onProgressAction.setFooterMode,
             onFooterFieldChanged = onProgressAction.setFooterField,
             onPageTurnStyleChanged = onPrefsAction.setPageTurnStyle,
@@ -6505,6 +6547,8 @@ class ReaderPrefsActions(
     // has it, so the preview can stay up until then (ADR 64).
     val commitBrightness: suspend (Float) -> Unit,
     val setPageTurnStyle: (PageTurnStyle) -> Unit,
+    val setTopProgressMode: (TopProgressMode) -> Unit,
+    val setProgressFontSizeSp: (Float) -> Unit,
     val setColumnMode: (ColumnMode) -> Unit,
     val setAutoScrollSpeed: (Float) -> Unit,
     val nudgeAutoScrollSpeed: (Int) -> Unit,
