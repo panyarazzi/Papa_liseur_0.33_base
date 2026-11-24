@@ -135,6 +135,23 @@ class ReaderTapZonesTest {
     }
 
     @Test
+    fun `anywhere turns forward on both sides while keeping the menu zones`() {
+        assertEquals(ahead, phone.actionAt(0.1f, 0.8f, TapZones.ANYWHERE))
+        assertEquals(ahead, phone.actionAt(0.9f, 0.8f, TapZones.ANYWHERE))
+        assertEquals(Action.Chrome, phone.actionAt(0.5f, 0.5f, TapZones.ANYWHERE))
+        assertEquals(Action.Chrome, phone.actionAt(0.5f, 0.05f, TapZones.ANYWHERE))
+        // Reading direction does not reverse an explicit forward-everywhere choice.
+        assertEquals(ahead, phone.actionAt(0.1f, 0.8f, TapZones.ANYWHERE, rtl = true))
+    }
+
+    @Test
+    fun `anywhere respects a narrower pair of tap edges`() {
+        assertEquals(ahead, phone.actionAt(0.1f, 0.8f, TapZones.ANYWHERE, sideWidth = 15))
+        assertEquals(Action.Chrome, phone.actionAt(0.5f, 0.8f, TapZones.ANYWHERE, sideWidth = 15))
+        assertEquals(ahead, phone.actionAt(0.9f, 0.8f, TapZones.ANYWHERE, sideWidth = 15))
+    }
+
+    @Test
     fun `one side goes back above its middle and forward below it`() {
         for (rtl in listOf(false, true)) {
             assertEquals(back, phone.actionAt(0.1f, 0.4f, TapZones.LEFT, rtl = rtl))
