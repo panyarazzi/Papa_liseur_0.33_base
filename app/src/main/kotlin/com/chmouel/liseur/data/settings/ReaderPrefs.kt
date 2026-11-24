@@ -935,7 +935,8 @@ data class ReaderPrefs(
 ) {
     companion object {
         const val MIN_FONT_SIZE = 0.6
-        const val MAX_FONT_SIZE = 2.5
+        // Match Papa-Liseur's wider font-size range for the controlled experiment.
+        const val MAX_FONT_SIZE = 3.5
 
         /**
          * How many sizes the reader can actually choose between.
@@ -947,7 +948,7 @@ data class ReaderPrefs(
          *
          * @see FONT_SIZE_SLIDER_STEPS
          */
-        const val FONT_SIZE_POSITIONS = 19
+        const val FONT_SIZE_POSITIONS = 30
         const val FONT_SIZE_SLIDER_STEPS = FONT_SIZE_POSITIONS - 2
 
         /**
