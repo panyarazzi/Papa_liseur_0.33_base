@@ -236,5 +236,6 @@ internal val TapZones.label: Int
         TapZones.BOTH -> R.string.tap_zones_both
         TapZones.LEFT -> R.string.tap_zones_left
         TapZones.RIGHT -> R.string.tap_zones_right
+        TapZones.ANYWHERE -> R.string.tap_zones_anywhere
         TapZones.OFF -> R.string.tap_zones_off
     }
