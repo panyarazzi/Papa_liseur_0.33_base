@@ -137,7 +137,7 @@ fun ReadingFooter(
     left: FooterField,
     right: FooterField,
     turn: Int,
-    progressFontSizeSp: Float,
+    progressFontSizeSp: Float = 12f,
     theme: ReaderTheme,
     onCycleMode: (onChosen: (FooterMode) -> Unit) -> Unit,
     onCycleField: (FooterSlot, onChosen: (FooterField) -> Unit) -> Unit,
