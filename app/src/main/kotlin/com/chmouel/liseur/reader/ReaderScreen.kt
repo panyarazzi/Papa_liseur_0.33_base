@@ -4210,7 +4210,7 @@ internal fun ReaderScreen(
         // there. The two halves have to flip together, and a `scroll`
         // that differs between them invalidates Readium's view pager
         // even in a fixed-layout book, where nothing renders from it.
-        val footerLineHeight = MaterialTheme.typography.labelSmall.lineHeight
+        val footerLineHeight = (prefs.progressFontSizeSp * 1.3f).sp
         val footerShowing =
             footerHasAnythingToSay(prefs.footerMode, prefs.footerLeft, prefs.footerRight)
         val footerReserve = FooterMetrics.reservedHeightDp(
@@ -4241,6 +4241,7 @@ internal fun ReaderScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .then(behindViewer)
+                    .padding(top = if (prefs.topProgressMode != TopProgressMode.OFF) (prefs.progressFontSizeSp * 1.5f + 22f).dp else 0.dp)
                     .then(
                         if (paddingMargins == null) {
                             Modifier.windowInsetsPadding(
