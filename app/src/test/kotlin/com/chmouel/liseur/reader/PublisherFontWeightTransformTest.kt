@@ -24,41 +24,37 @@ class PublisherFontWeightTransformTest {
     }
 
     @Test
-    fun `enabled script applies the requested weight to normal declarations`() {
-        val script = PublisherFontWeightTransform.script(1.75, enabled = true)
+    fun `script receives the requested weight and reports layout changes`() {
+        val script = PublisherFontWeightTransform.script(1.75)
 
         assertTrue(script.contains("var target = 700;"))
-        assertTrue(script.contains("var enabled = true;"))
-        assertTrue(script.contains("value.trim().toLowerCase()"))
-        assertTrue(script.contains("normalized === \"normal\""))
+        assertTrue(script.contains("var previousTarget = state.target;"))
         assertTrue(script.contains("var(--papa-reader-font-weight, 400)"))
-        assertTrue(script.contains("style.getPropertyPriority(\"font-weight\")"))
         assertTrue(script.contains("return changed;"))
         assertFalse(script.contains("__PAPA_FONT_WEIGHT__"))
-        assertFalse(script.contains("__PAPA_FONT_WEIGHT_ENABLED__"))
     }
 
     @Test
-    fun `disabled script restores declarations owned by the transform`() {
-        val script = PublisherFontWeightTransform.script(1.0, enabled = false)
-
-        assertTrue(script.contains("var enabled = false;"))
-        assertTrue(script.contains("normalized === \"var(--papa-reader-font-weight, 400)\""))
-        assertTrue(script.contains("style.setProperty(\"font-weight\", \"normal\", priority)"))
-    }
-
-    @Test
-    fun `embedded font face descriptors are excluded from rewriting`() {
-        val script = PublisherFontWeightTransform.script(1.75, enabled = true)
+    fun `only normal declarations in ordinary style rules are transformed`() {
+        val script = PublisherFontWeightTransform.script(1.75)
 
         assertTrue(script.contains("rule.type === 1 && rule.style"))
-        assertTrue(script.contains("@font-face descriptors"))
+        assertTrue(script.contains("value.trim().toLowerCase() !== \"normal\""))
+        assertTrue(script.contains("style.getPropertyPriority(\"font-weight\")"))
         assertFalse(script.contains("rule.type === 5 && rule.style"))
     }
 
     @Test
+    fun `embedded font face descriptors remain untouched`() {
+        val script = PublisherFontWeightTransform.script(1.75)
+
+        assertTrue(script.contains("@font-face descriptors"))
+        assertTrue(script.contains("CSSStyleRule only"))
+    }
+
+    @Test
     fun `inline styles and later stylesheet changes are handled`() {
-        val script = PublisherFontWeightTransform.script(1.75, enabled = true)
+        val script = PublisherFontWeightTransform.script(1.75)
 
         assertTrue(script.contains("document.querySelectorAll(\"[style]\")"))
         assertTrue(script.contains("new MutationObserver"))
