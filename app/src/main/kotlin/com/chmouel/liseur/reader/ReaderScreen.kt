@@ -2040,7 +2040,7 @@ internal fun ReaderScreen(
             // cancellation, so the reflow scope would stay open for the
             // rest of the session and every scrolled-place question
             // (narrate from here among them) would get no answer.
-            .filter { (preferences, _) ->
+            .filter { (preferences, _, _) ->
                 preferences.scroll == initialPreferences.scroll &&
                     preferences.columnCount == initialPreferences.columnCount
             }
