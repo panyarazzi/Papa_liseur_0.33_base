@@ -2019,13 +2019,16 @@ internal fun ReaderScreen(
             // book paginated whatever this says.
             snapshotFlow { Triple(readingThemeNow, columnMode, scrollMode) },
         ) { p, (theme, columns, scrolling) ->
-            p.toEpubPreferences(theme, columns, scrolling, readingCss) to
+            Triple(
+                p.toEpubPreferences(theme, columns, scrolling, readingCss),
                 verticalPageMargins(
                     containerScrolls(reflowableText, scrolling),
                     readingCss,
                     p.topMargin,
                     p.bottomMargin,
-                )
+                ),
+                p.fontWeight.multiplier,
+            )
         }
             // Scrolling and columns are keys of the fragment: changing
             // either builds a new navigator with them as its initial
@@ -2054,8 +2057,10 @@ internal fun ReaderScreen(
             // as a margin preference does, so it takes the same capture
             // and restore.
             .distinctUntilChanged()
-            .dropWhile { it == initialPreferences to paddingMargins }
-            .collect { (preferences, margins) ->
+            .dropWhile { (preferences, margins, _) ->
+                preferences == initialPreferences && margins == paddingMargins
+            }
+            .collect { (preferences, margins, fontWeightMultiplier) ->
                 reflow.within {
                     // Taken before the anchor rather than with the
                     // restore. The capture below reads the document,
@@ -2080,6 +2085,25 @@ internal fun ReaderScreen(
                         }
                     }
                     val before = ExactLocatorAnchor.layoutSignature(nav)
+                    // Apply the publisher CSS weight transform in the same
+                    // reflow transaction as Readium's preference update.
+                    // This keeps a weight change from producing an untracked
+                    // locator emission between two independent page rebuilds.
+                    val transformResult = if (reflowableText) {
+                        try {
+                            nav.evaluateJavascript(
+                                PublisherFontWeightTransform.script(fontWeightMultiplier)
+                            )
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (_: Exception) {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                    val transformChanged = transformResult == "true"
+                    if (transformChanged) layoutGeneration++
                     // After the anchor and the signature, so the resize
                     // the padding causes is part of what the settle
                     // below watches for rather than something it races.
@@ -2128,101 +2152,80 @@ internal fun ReaderScreen(
         val nav = navigator ?: return@LaunchedEffect
         if (!reflowableText) return@LaunchedEffect
         val root = nav.publicationViewOrNull ?: return@LaunchedEffect
+        var transformed: Pair<WebView, String>? = null
         var fitted: Pair<WebView, String>? = null
         merge(nav.currentLocator.map { }, layoutPasses(root)).collect {
             val web = visibleWebView(root) ?: return@collect
-            // Keyed by the resource as well as by the view, for the same
-            // reason the image probe below is: the pager recycles a web
-            // view from one chapter into another, and the same instance
-            // is then a different document with its own notes to hide
-            // and its own pictures to fit.
+            // The pager recycles WebViews between chapters, so both the view
+            // and the resource href identify the document being processed.
             val key = web to nav.currentLocator.value.href.toString()
-            if (key == fitted) return@collect
-            fitted = key
-            // Which position to come back to, decided before the reflow
-            // scope opens: the wait below is not a reflow, and holding
-            // the scope through it would read a page the reader turned
-            // in the meantime as text moving under them.
-            //
-            // The anchor is taken from the navigator rather than from
-            // reflowAnchor: that one belongs to a run of preference
-            // changes in the resource being left, and restoring to it
-            // would carry the reader back out of the one they just
-            // turned into.
-            //
-            // For the same reason it is taken only once the navigator's
-            // position names the resource this web view is showing.
-            // Readium puts a resource on screen before it publishes
-            // having moved to it, so the position on hand can still be
-            // the one the reader left — and restoring to that sends
-            // them back to it, which makes the resource they came from
-            // the newly visible one and starts the whole thing over.
-            // The saved position says nothing about that ping-pong,
-            // because a reflow does not persist, until the next page
-            // turn publishes wherever it came to rest.
+            val needsTransform = key != transformed
+            val needsFit = key != fitted
+            if (!needsTransform && !needsFit) return@collect
+
+            // Wait until the navigator itself names the resource now shown.
+            // The pager can display the next WebView before publishing its
+            // locator; capturing during that gap would anchor the chapter
+            // being left and restore the reader out of the chapter they chose.
             val here = withTimeoutOrNull(ANCHOR_ARRIVAL_MS) {
                 nav.currentLocator.first {
                     ResourceAddress.shows(web.url, it.href.toString())
                 }
             }
-            // Taken here rather than at the top of the run, because
-            // the wait above is itself the arrival of whatever move
-            // brought this resource in: marking before it would refuse
-            // the restore after every chapter turn, which is most of
-            // the times a resource is laid out at all.
-            //
-            // It is still [IssuedMoves.NONE] when the reader is being
-            // sent somewhere within this resource — a contents entry
-            // pointing at a fragment of it — because the position the
-            // wait settled for is the one published as the resource
-            // loaded, not the one they asked for.
             val since = moves.mark(SystemClock.elapsedRealtime())
-            // Whether the resource this run is for is still the one on
-            // screen, the one the navigator names, and the one the
-            // reader has not since been sent away from. Waiting above
-            // and taking the scope below are both places the reader can
-            // turn a page, and everything after them speaks to the
-            // document in front of them: a capture takes its words from
-            // it, a restore puts the reader back into it. Asked again
-            // rather than assumed, at each point where the answer could
-            // have changed — and asked of the moves issued as well,
-            // because a jump the reader has just made shows in neither
-            // the position nor the views for a moment yet.
             fun stillFitting(): Boolean =
                 web === visibleWebView(root) &&
                     ResourceAddress.shows(web.url, nav.currentLocator.value.href.toString()) &&
                     moves.unchangedSince(since)
-            // While an approximate opening is still landing, Readium has
-            // named the resource but may not have scrolled to the place
-            // yet, so a capture reads the chapter's first screen and the
-            // restore below would send the reader there. Come back to
-            // where the opening is heading instead. An exact opening
-            // scrolls by its quote before this runs and is checked on
-            // its own, so it keeps the capture.
             val opening = gateAnchor?.takeIf {
                 gate.isGated && !ExactLocatorAnchor.isExact(it) &&
                     ResourceAddress.shows(web.url, it.href.toString())
             }
+
+            var transformSucceeded = false
             reflow.within {
+                // The opening target is more trustworthy than a capture while
+                // an approximate restoration is still travelling to its page.
                 val anchor = here?.takeIf { stillFitting() }?.let { opening ?: capture(nav, it) }
                 val before = ExactLocatorAnchor.layoutSignature(nav)
-                if (repairPage(nav)) {
-                    // Settled before the scope closes whether or not
-                    // there is an anchor: the text the fit moved
-                    // reports where it came to rest either way, and
-                    // outside the scope that reads as a page the reader
-                    // turned.
-                    awaitReflowSettled(nav, before)
-                    // A position that never arrived, or one the reader
-                    // has since left, leaves the fit applied without a
-                    // restore. Fitting moves the text a little;
-                    // restoring the wrong chapter moves the reader out
-                    // of the chapter they are in.
-                    if (anchor != null && stillFitting()) {
-                        restoreAfterReflow(nav, anchor)
+
+                // The transform changes CSSOM declarations and therefore can
+                // change pagination. It must be inside the same reflow scope
+                // that captures and restores the reader's Locator.
+                if (needsTransform && anchor != null && stillFitting()) {
+                    val result = try {
+                        nav.evaluateJavascript(
+                            PublisherFontWeightTransform.script(prefs.fontWeight.multiplier)
+                        )
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        null
+                    }
+                    transformSucceeded = result != null && result != "null"
+                    if (result == "true") {
+                        layoutGeneration++
+                        awaitReflowSettled(nav, before)
                     }
                 }
+
+                val repaired = needsFit && repairPage(nav)
+                if (repaired) {
+                    // Page repair can move the text too, so wait for it before
+                    // restoring the anchor captured above.
+                    awaitReflowSettled(nav, before)
+                }
+                if ((repaired || transformSucceeded && needsTransform) &&
+                    anchor != null && stillFitting()
+                ) {
+                    restoreAfterReflow(nav, anchor)
+                }
             }
+
+            // A failed/too-early transform is retried on the next layout pass.
+            // A missing anchor must not be mistaken for a successful transform.
+            if (transformSucceeded) transformed = key
+            if (needsFit) fitted = key
         }
     }
 
