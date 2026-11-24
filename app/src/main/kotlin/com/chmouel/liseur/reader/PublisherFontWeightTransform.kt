@@ -18,10 +18,8 @@ internal object PublisherFontWeightTransform {
         return (400.0 * safeMultiplier).roundToInt().coerceIn(1, 1000)
     }
 
-    fun script(multiplier: Double?, enabled: Boolean): String =
-        SCRIPT
-            .replace("__PAPA_FONT_WEIGHT__", targetWeight(multiplier).toString())
-            .replace("__PAPA_FONT_WEIGHT_ENABLED__", enabled.toString())
+    fun script(multiplier: Double?): String =
+        SCRIPT.replace("__PAPA_FONT_WEIGHT__", targetWeight(multiplier).toString())
 
     private val SCRIPT = """
         (function () {
@@ -35,38 +33,21 @@ internal object PublisherFontWeightTransform {
           }
 
           var target = __PAPA_FONT_WEIGHT__;
-          var enabled = __PAPA_FONT_WEIGHT_ENABLED__;
-          var previousEnabled = state.enabled === true;
           var previousTarget = state.target;
-          state.enabled = enabled;
           state.target = target;
           root.style.setProperty("--papa-reader-font-weight", String(target));
 
           function rewriteDeclaration(style) {
             if (!style || !style.getPropertyValue) return false;
             var value = style.getPropertyValue("font-weight");
-            if (!value) return false;
-            var normalized = value.trim().toLowerCase();
+            if (!value || value.trim().toLowerCase() !== "normal") return false;
             var priority = style.getPropertyPriority("font-weight");
-
-            if (enabled && normalized === "normal") {
-              style.setProperty(
-                "font-weight",
-                "var(--papa-reader-font-weight, 400)",
-                priority
-              );
-              return true;
-            }
-
-            // Restore only declarations owned by this transform. This matters
-            // when the reader switches from Publisher font to an app font:
-            // the publisher's original CSS must not keep overriding the new
-            // font's Readium weight preference.
-            if (!enabled && normalized === "var(--papa-reader-font-weight, 400)") {
-              style.setProperty("font-weight", "normal", priority);
-              return true;
-            }
-            return false;
+            style.setProperty(
+              "font-weight",
+              "var(--papa-reader-font-weight, 400)",
+              priority
+            );
+            return true;
           }
 
           function rewriteRules(rules) {
@@ -130,9 +111,7 @@ internal object PublisherFontWeightTransform {
             }
           };
 
-          var changed = state.apply();
-          changed = changed || previousEnabled !== enabled ||
-            (enabled && previousTarget !== target);
+          var changed = state.apply() || previousTarget !== target;
 
           // Publisher XHTML may append a stylesheet after its first layout.
           // Keep the CSSOM transform current; the initial application itself
