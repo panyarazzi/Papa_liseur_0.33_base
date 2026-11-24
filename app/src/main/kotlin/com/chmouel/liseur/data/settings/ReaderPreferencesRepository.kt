@@ -32,6 +32,8 @@ internal val READER_BACKUP_TYPES = mapOf(
     "font_weight" to BackupValueType.STRING, "hyphens" to BackupValueType.BOOLEAN,
     "letter_spacing" to BackupValueType.DOUBLE, "word_spacing" to BackupValueType.DOUBLE,
     "paragraph_spacing" to BackupValueType.DOUBLE,
+    "top_progress_mode" to BackupValueType.STRING,
+    "progress_font_size_sp" to BackupValueType.FLOAT,
 )
 
 /**
@@ -97,6 +99,8 @@ class ReaderPreferencesRepository(private val store: DataStore<Preferences>) {
         val LETTER_SPACING = doublePreferencesKey("letter_spacing")
         val WORD_SPACING = doublePreferencesKey("word_spacing")
         val PARAGRAPH_SPACING = doublePreferencesKey("paragraph_spacing")
+        val TOP_PROGRESS_MODE = stringPreferencesKey("top_progress_mode")
+        val PROGRESS_FONT_SIZE_SP = floatPreferencesKey("progress_font_size_sp")
     }
 
     /**
@@ -130,6 +134,8 @@ class ReaderPreferencesRepository(private val store: DataStore<Preferences>) {
             letterSpacing = p[Keys.LETTER_SPACING],
             wordSpacing = p[Keys.WORD_SPACING],
             paragraphSpacing = p[Keys.PARAGRAPH_SPACING],
+            topProgressMode = TopProgressMode.fromId(p[Keys.TOP_PROGRESS_MODE]),
+            progressFontSizeSp = (p[Keys.PROGRESS_FONT_SIZE_SP] ?: 12f).coerceIn(9f, 20f),
         ).sanitized()
     }
 
@@ -193,6 +199,14 @@ class ReaderPreferencesRepository(private val store: DataStore<Preferences>) {
 
     suspend fun setPageTurnStyle(style: PageTurnStyle) {
         store.edit { it[Keys.PAGE_TURN_STYLE] = style.id }
+    }
+
+    suspend fun setTopProgressMode(mode: TopProgressMode) {
+        store.edit { it[Keys.TOP_PROGRESS_MODE] = mode.id }
+    }
+
+    suspend fun setProgressFontSizeSp(value: Float) {
+        store.edit { it[Keys.PROGRESS_FONT_SIZE_SP] = value.coerceIn(9f, 20f) }
     }
 
     suspend fun setFooterMode(mode: FooterMode) {
