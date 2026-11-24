@@ -272,6 +272,7 @@ private fun ReaderChromePreferencesControls(
     }
 }
 
+@Composable
 private fun KeepScreenOnToggle(enabled: Boolean, onChanged: (Boolean) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
