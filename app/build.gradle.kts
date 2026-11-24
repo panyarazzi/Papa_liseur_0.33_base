@@ -95,9 +95,10 @@ android {
             isMinifyEnabled = false
         }
         // A build that installs *beside* the real app rather than over
-        // it. The debug build carries the production applicationId, so
-        // pushing a work in progress to a phone replaces a library —
-        // reading positions, highlights, notes — that cannot be rebuilt.
+        // it. The debug build carries the standard experimental applicationId, so
+        // repeatedly installing a work in progress can replace that
+        // experimental install's library — reading positions, highlights,
+        // notes — that cannot be rebuilt. Use dev for a third isolated copy.
         // The suffix gives this one its own package name, and with it
         // its own database, DataStore and SAF grant, so the installed
         // app is never touched.
