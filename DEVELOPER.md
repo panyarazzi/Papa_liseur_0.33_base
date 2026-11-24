@@ -27,8 +27,11 @@ Needs JDK 17+ and a recent Android SDK (SDK 37); use the Gradle wrapper.
   and `app/src/testPlay/`; the `foss` APK has none of its code, strings
   or endpoints.
 - Read aloud, translation and the companion on-device or on a
-  user-entered server are in both. Both flavors share application id,
-  version and signing key; `assembleRelease`/`assembleDebug` build both.
+  user-entered server are in both. Both flavors share the experimental
+  application id, version and signing key; `assembleRelease`/`assembleDebug`
+  build both. Every variant uses `com.chmouel.liseur.experimental` (the
+  `dev` build adds `.dev`) and installs beside official
+  `com.chmouel.liseur` without replacing its data.
 
 APKs land in `app/build/outputs/apk/{foss,play}/{debug,dev,release}/`,
 the bundle in `app/build/outputs/bundle/playRelease/`. Debug is signed
@@ -50,8 +53,9 @@ make dev-uninstall
 make dev-logcat      # logcat filtered to its pid
 ```
 
-- `applicationId` is `com.chmouel.liseur.dev`: own Room database,
-  DataStore, SAF grant and server device key; cannot touch the real app.
+- `applicationId` is `com.chmouel.liseur.experimental.dev`: own Room database,
+  DataStore, SAF grant and server device key; cannot touch either official
+  Liseur or the standard experimental install.
   Launcher "Liseur (dev)" with retinted icon (all of `app/src/dev/res/`).
   APK: `app/build/outputs/apk/play/dev/app-play-dev.apk`, debug-signed.
 - Device-facing targets (`install`, `run`, `reset`, `dev-*`) and
