@@ -47,6 +47,7 @@ sealed interface FooterFigure {
 
     /** Percentage of charge left, and whether it is going up. */
     data class Battery(val percent: Int, val charging: Boolean) : FooterFigure
+    data class TimeAndBattery(val atMillis: Long, val percent: Int, val charging: Boolean) : FooterFigure
 }
 
 /**
@@ -100,6 +101,12 @@ fun footerFigure(
         FooterField.BATTERY -> return device.batteryPercent
             ?.takeIf { it in 0..100 }
             ?.let { FooterFigure.Battery(it, device.charging) }
+
+        FooterField.TIME_AND_BATTERY -> return if (
+            device.nowMillis != null && device.batteryPercent != null && device.batteryPercent in 0..100
+        ) {
+            FooterFigure.TimeAndBattery(device.nowMillis, device.batteryPercent, device.charging)
+        } else null
 
         else -> Unit
     }
@@ -170,7 +177,7 @@ fun footerFigure(
                 .takeIf { it.totalPositions > 0 }
                 ?.let { FooterFigure.Location(it.position, it.totalPositions) }
 
-        FooterField.CLOCK, FooterField.BATTERY, FooterField.EMPTY -> null
+        FooterField.CLOCK, FooterField.BATTERY, FooterField.TIME_AND_BATTERY, FooterField.EMPTY -> null
     }
 }
 
