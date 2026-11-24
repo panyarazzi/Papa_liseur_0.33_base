@@ -38,6 +38,7 @@ import com.chmouel.liseur.data.settings.FooterField
 import com.chmouel.liseur.data.settings.FooterSlot
 import com.chmouel.liseur.data.settings.PageTurnStyle
 import com.chmouel.liseur.data.settings.ReaderPrefs
+import com.chmouel.liseur.data.settings.TopProgressMode
 import com.chmouel.liseur.data.settings.ReadingCss
 import com.chmouel.liseur.ui.reading.SelectionToolbarRow
 import com.chmouel.liseur.ui.LiseurModalBottomSheet
@@ -106,6 +107,8 @@ fun AdvancedSheet(
     onVerticalMarginsChanged: (Double?) -> Unit,
     onSyncVerticalMarginsChanged: (Boolean) -> Unit,
     onColumnModeChanged: (ColumnMode) -> Unit,
+    onTopProgressModeChanged: (TopProgressMode) -> Unit,
+    onProgressFontSizeChanged: (Float) -> Unit,
     onFooterModeChanged: (FooterMode) -> Unit,
     onFooterFieldChanged: (FooterSlot, FooterField) -> Unit,
     onPageTurnStyleChanged: (PageTurnStyle) -> Unit,
@@ -168,6 +171,11 @@ fun AdvancedSheet(
                 css = readingCss,
                 actions = fineTypography,
             )
+            ReaderChromePreferencesControls(
+                prefs = prefs,
+                onTopProgressModeChanged = onTopProgressModeChanged,
+                onProgressFontSizeChanged = onProgressFontSizeChanged,
+            )
             ReadingFooterControls(
                 footerMode = prefs.footerMode,
                 footerLeft = prefs.footerLeft,
@@ -220,6 +228,51 @@ fun AdvancedSheet(
 }
 
 @Composable
+@Composable
+private fun ReaderChromePreferencesControls(
+    prefs: ReaderPrefs,
+    onTopProgressModeChanged: (TopProgressMode) -> Unit,
+    onProgressFontSizeChanged: (Float) -> Unit,
+) {
+    var progressSize by remember(prefs.progressFontSizeSp) {
+        mutableFloatStateOf(prefs.progressFontSizeSp)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ReadingSectionLabel("Top progress")
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            TopProgressMode.entries.forEach { mode ->
+                Text(
+                    text = when (mode) {
+                        TopProgressMode.OFF -> "Off"
+                        TopProgressMode.PERCENT -> "Percent"
+                        TopProgressMode.PAGES_LEFT_CHAPTER_TITLE -> "Pages / chapter"
+                    },
+                    modifier = Modifier
+                        .clickable { onTopProgressModeChanged(mode) }
+                        .padding(vertical = 8.dp),
+                    color = if (mode == prefs.topProgressMode) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        Text(
+            text = "Progress text size: ${progressSize.toInt()} sp",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Slider(
+            value = progressSize,
+            onValueChange = { progressSize = it },
+            onValueChangeFinished = { onProgressFontSizeChanged(progressSize) },
+            valueRange = 9f..20f,
+            steps = 10,
+        )
+    }
+}
+
 private fun KeepScreenOnToggle(enabled: Boolean, onChanged: (Boolean) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
