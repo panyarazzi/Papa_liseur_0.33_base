@@ -329,6 +329,10 @@ class FooterFigureTest {
             FooterFigure.Battery(78, charging = false),
             figure(FooterField.BATTERY, progress = null, device = device),
         )
+        assertEquals(
+            FooterFigure.TimeAndBattery(1_700_000_000_000L, 78, charging = false),
+            figure(FooterField.TIME_AND_BATTERY, progress = null, device = device),
+        )
     }
 
     @Test
