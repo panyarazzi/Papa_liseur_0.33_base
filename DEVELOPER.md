@@ -40,9 +40,9 @@ default so any machine/CI can build it (see signing below).
 
 ### The dev build, for testing on a phone you use
 
-The debug build uses the production `applicationId`, so installing it
-over Liseur replaces it and the library (positions, highlights, notes,
-sessions) is lost. Use the `dev` build type instead:
+The standard debug and release builds use the experimental
+`applicationId`, so they install beside official Liseur. Use the `dev`
+build type when you also want a third, isolated install for development:
 
 ```bash
 make dev             # ./gradlew assemblePlayDev (FLAVOR=foss for assembleFossDev)
